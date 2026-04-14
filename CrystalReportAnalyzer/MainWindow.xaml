@@ -325,6 +325,13 @@
                 <!-- Export button row -->
                 <Border Grid.Row="2" Padding="6,0">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button x:Name="GenerateRazorButton"
+                                Style="{StaticResource PrimaryButton}"
+                                Content="Gerar .cshtml"
+                                Click="GenerateRazor_Click"
+                                IsEnabled="False"
+                                Padding="22,10"
+                                Margin="0,0,8,0"/>
                         <Button x:Name="ExportButton"
                                 Style="{StaticResource ExportButton}"
                                 Content="Exportar para JSON"

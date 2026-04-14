@@ -7,8 +7,10 @@ using CrystalReportAnalyzer.Core.Configuration;
 using CrystalReportAnalyzer.Core.Models;
 using System.Windows.Controls.Primitives;
 using CrystalReportAnalyzer.Core.Services;
+using CrystalReportAnalyzer.Core.Services.RazorGeneration;
 using CrystalReportAnalyzer.Exporters;
 using System.IO;
+using WinForms = System.Windows.Forms;
 
 namespace CrystalReportAnalyzer
 {
@@ -94,6 +96,7 @@ namespace CrystalReportAnalyzer
                 DisplayStats(_currentReport);
                 DisplayDependencies(_currentReport);
                 ExportButton.IsEnabled = true;
+                GenerateRazorButton.IsEnabled = true;
 
                 SetStatus($"Análise concluída: {_currentReport.Name}");
             }
@@ -248,6 +251,45 @@ namespace CrystalReportAnalyzer
                 new("Score",           r.Complexity!.Score.ToString()),
                 new("Classificação",   r.Complexity.LevelDescription),
             };
+        }
+
+        // ── Razor generation ─────────────────────────────────────────────
+
+        private void GenerateRazor_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentReport is null) return;
+
+            using var dialog = new WinForms.FolderBrowserDialog
+            {
+                Description         = "Selecione a pasta de destino para os arquivos .cshtml",
+                ShowNewFolderButton = true,
+            };
+
+            if (dialog.ShowDialog() != WinForms.DialogResult.OK) return;
+
+            try
+            {
+                var config = new RazorGenerationConfig
+                {
+                    OutputDirectory = dialog.SelectedPath,
+                };
+
+                var service = new RazorGenerationService();
+                var result  = service.Generate(_currentReport, config);
+
+                SetStatus($"Gerado: {result.GeneratedFiles.Count} arquivo(s) em {dialog.SelectedPath}");
+                System.Windows.MessageBox.Show(
+                    $"{result.GeneratedFiles.Count} arquivo(s) gerado(s) com sucesso!\n\n" +
+                    string.Join("\n", result.GeneratedFiles.Select(Path.GetFileName)),
+                    "Geração .cshtml",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Erro ao gerar .cshtml:\n{ex.Message}", "Erro",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         // ── Export ───────────────────────────────────────────────────────
