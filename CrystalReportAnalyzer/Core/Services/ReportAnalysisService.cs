@@ -1,6 +1,7 @@
 using System.IO;
 using CrystalDecisions.CrystalReports.Engine;
 using CrystalReportAnalyzer.Core.Analyzer;
+using CrystalReportAnalyzer.Core.Configuration;
 using CrystalReportAnalyzer.Core.Models;
 using CrystalReportAnalyzer.Extractors;
 
@@ -8,7 +9,7 @@ namespace CrystalReportAnalyzer.Core.Services;
 
 public class ReportAnalysisService
 {
-    public ReportModel Analyze(string filePath)
+    public ReportModel Analyze(string filePath, ScoringConfig config)
     {
         using var doc = new ReportDocument();
         doc.Load(filePath);
@@ -28,7 +29,7 @@ public class ReportAnalysisService
         // Flatten all fields from all tables for top-level access
         report.Fields = report.Tables.SelectMany(t => t.Fields).ToList();
 
-        report.Complexity = ComplexityAnalyzer.Analyze(report);
+        report.Complexity = ComplexityAnalyzer.Analyze(report, config);
 
         report.Dependencies = new ReportDependencies
         {

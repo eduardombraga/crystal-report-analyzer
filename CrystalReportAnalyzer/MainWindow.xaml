@@ -93,6 +93,50 @@
         <!-- ── Header ─────────────────────────────────────────────── -->
         <Border Grid.Row="0" Background="#1A252F">
             <DockPanel Margin="24,0">
+                <Button DockPanel.Dock="Right"
+                        Content="⚙ Configurações"
+                        Click="Settings_Click"
+                        VerticalAlignment="Center"
+                        Padding="14,7"
+                        FontSize="12"
+                        Cursor="Hand"
+                        Background="#2C3E50"
+                        Foreground="#BDC3C7"
+                        BorderThickness="1"
+                        BorderBrush="#4A6278">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background"      Value="#2C3E50"/>
+                            <Setter Property="Foreground"      Value="#BDC3C7"/>
+                            <Setter Property="BorderBrush"     Value="#4A6278"/>
+                            <Setter Property="BorderThickness" Value="1"/>
+                            <Setter Property="Padding"         Value="14,7"/>
+                            <Setter Property="FontSize"        Value="12"/>
+                            <Setter Property="Cursor"          Value="Hand"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="4"
+                                                Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#3D5166"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
                 <TextBlock Text="Crystal Report Analyzer"
                            Foreground="White" FontSize="22" FontWeight="Bold"
                            VerticalAlignment="Center"/>
