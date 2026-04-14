@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.Win32;
+using CrystalReportAnalyzer.Core.Configuration;
 using CrystalReportAnalyzer.Core.Models;
 using System.Windows.Controls.Primitives;
 using CrystalReportAnalyzer.Core.Services;
@@ -15,6 +16,7 @@ namespace CrystalReportAnalyzer
     {
         private readonly ReportAnalysisService _service = new();
         private ReportModel? _currentReport;
+        private ScoringConfig _config = ScoringConfigService.Load();
 
         // ── Complexity level colors ──────────────────────────────────────
         private static readonly Dictionary<ComplexityLevel, (string Hex, string Range)> LevelMeta = new()
@@ -62,6 +64,19 @@ namespace CrystalReportAnalyzer
             if (rpt != null) LoadReport(rpt);
         }
 
+        // ── Settings ─────────────────────────────────────────────────────
+
+        private void Settings_Click(object sender, RoutedEventArgs e)
+        {
+            var window = new SettingsWindow(_config) { Owner = this };
+            if (window.ShowDialog() == true && window.Result is not null)
+            {
+                _config = window.Result;
+                if (_currentReport is not null)
+                    LoadReport(_currentReport.FilePath);
+            }
+        }
+
         // ── Core: load & analyse ─────────────────────────────────────────
 
         private void LoadReport(string filePath)
@@ -72,7 +87,7 @@ namespace CrystalReportAnalyzer
                 FilePathText.Text = filePath;
                 Cursor = Cursors.Wait;
 
-                _currentReport = _service.Analyze(filePath);
+                _currentReport = _service.Analyze(filePath, _config);
 
                 BuildReportTree(_currentReport);
                 DisplayComplexity(_currentReport.Complexity!);

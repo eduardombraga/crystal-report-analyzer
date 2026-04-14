@@ -1,0 +1,105 @@
+<Window x:Class="CrystalReportAnalyzer.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Configurações de Complexidade"
+        Width="420" Height="520"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="#F5F6FA">
+
+    <Window.Resources>
+        <Style TargetType="TextBlock" x:Key="SectionHeader">
+            <Setter Property="FontSize"     Value="13"/>
+            <Setter Property="FontWeight"   Value="SemiBold"/>
+            <Setter Property="Foreground"   Value="#2C3E50"/>
+            <Setter Property="Margin"       Value="0,0,0,6"/>
+        </Style>
+        <Style TargetType="Button" x:Key="PrimaryBtn">
+            <Setter Property="Background"   Value="#2980B9"/>
+            <Setter Property="Foreground"   Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding"      Value="18,7"/>
+            <Setter Property="FontSize"     Value="13"/>
+            <Setter Property="Cursor"       Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#2471A3"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="Button" x:Key="SecondaryBtn" BasedOn="{StaticResource PrimaryBtn}">
+            <Setter Property="Background" Value="#7F8C8D"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#626567"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <StackPanel Margin="24">
+
+        <!-- Weights -->
+        <TextBlock Text="Pesos por item" Style="{StaticResource SectionHeader}"/>
+        <TextBlock Text="Cada item encontrado no relatório multiplica sua contagem pelo peso."
+                   FontSize="11" Foreground="#7F8C8D" Margin="0,0,0,8" TextWrapping="Wrap"/>
+        <DataGrid x:Name="WeightsGrid"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  CanUserReorderColumns="False"
+                  CanUserResizeRows="False"
+                  HeadersVisibility="Column"
+                  GridLinesVisibility="Horizontal"
+                  BorderThickness="1" BorderBrush="#DDE0E7"
+                  RowHeight="32"
+                  FontSize="13"
+                  Margin="0,0,0,20">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Item"  Binding="{Binding Name}"  Width="*"   IsReadOnly="True"/>
+                <DataGridTextColumn Header="Peso"  Binding="{Binding Value}" Width="80"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Thresholds -->
+        <TextBlock Text="Limites de classificação" Style="{StaticResource SectionHeader}"/>
+        <TextBlock Text="Pontuação máxima (inclusive) para cada nível. Acima do último limite = Muito Complexo."
+                   FontSize="11" Foreground="#7F8C8D" Margin="0,0,0,8" TextWrapping="Wrap"/>
+        <DataGrid x:Name="ThresholdsGrid"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  CanUserReorderColumns="False"
+                  CanUserResizeRows="False"
+                  HeadersVisibility="Column"
+                  GridLinesVisibility="Horizontal"
+                  BorderThickness="1" BorderBrush="#DDE0E7"
+                  RowHeight="32"
+                  FontSize="13"
+                  Margin="0,0,0,24">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Nível"  Binding="{Binding Name}"  Width="*"   IsReadOnly="True"/>
+                <DataGridTextColumn Header="Limite" Binding="{Binding Value}" Width="80"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Buttons -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Restaurar Padrões" Style="{StaticResource SecondaryBtn}"
+                    Margin="0,0,10,0" Click="RestoreDefaults_Click"/>
+            <Button Content="Salvar" Style="{StaticResource PrimaryBtn}"
+                    Click="Save_Click"/>
+        </StackPanel>
+
+    </StackPanel>
+</Window>
