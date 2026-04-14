@@ -31,6 +31,31 @@ public class RazorGenerationService
         File.WriteAllText(gridPath, gridContent, System.Text.Encoding.UTF8);
         result.GeneratedFiles.Add(gridPath);
 
+        // Report.cshtml — print version with grouping
+        string reportContent = ReportViewGenerator.Generate(report, config);
+        string reportPath    = Path.Combine(config.OutputDirectory, $"{reportName}_Report.cshtml");
+        File.WriteAllText(reportPath, reportContent, System.Text.Encoding.UTF8);
+        result.GeneratedFiles.Add(reportPath);
+
+        // Controller
+        string controllerContent = ControllerGenerator.Generate(report, config);
+        string controllerPath    = Path.Combine(config.OutputDirectory, $"{reportName}Controller.cs");
+        File.WriteAllText(controllerPath, controllerContent, System.Text.Encoding.UTF8);
+        result.GeneratedFiles.Add(controllerPath);
+
+        // ViewModels
+        string viewModelContent = ViewModelGenerator.Generate(report, config);
+        string viewModelPath    = Path.Combine(config.OutputDirectory, $"{reportName}ViewModel.cs");
+        File.WriteAllText(viewModelPath, viewModelContent, System.Text.Encoding.UTF8);
+        result.GeneratedFiles.Add(viewModelPath);
+
+        // JavaScript
+        string jsContent = JavaScriptGenerator.Generate(report, config);
+        string camelName = RazorTypeMapper.ToCamelCase(report.Name);
+        string jsPath    = Path.Combine(config.OutputDirectory, $"{camelName}.js");
+        File.WriteAllText(jsPath, jsContent, System.Text.Encoding.UTF8);
+        result.GeneratedFiles.Add(jsPath);
+
         return result;
     }
 }
