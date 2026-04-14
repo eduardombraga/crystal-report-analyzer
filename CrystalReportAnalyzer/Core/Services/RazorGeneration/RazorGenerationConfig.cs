@@ -13,4 +13,7 @@ public class RazorGenerationConfig
 
     /// <summary>Output directory where files are written.</summary>
     public string OutputDirectory { get; set; } = string.Empty;
+
+    /// <summary>Generate partial views for subreports.</summary>
+    public bool IncludeSubreports { get; set; } = true;
 }

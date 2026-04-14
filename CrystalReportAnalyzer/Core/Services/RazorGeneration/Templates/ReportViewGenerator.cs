@@ -40,6 +40,18 @@ public static class ReportViewGenerator
         else
             GenerateSimpleReport(sb, report, fields, pascal);
 
+        // Subreport references
+        if (config.IncludeSubreports && report.Subreports.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("@* ── Sub-relatórios ── *@");
+            foreach (var sub in report.Subreports)
+            {
+                string subPascal = RazorTypeMapper.ToPascalCase(sub.Name);
+                sb.AppendLine($"@await Html.PartialAsync(\"_Sub{subPascal}\", Model)");
+            }
+        }
+
         return sb.ToString().TrimEnd();
     }
 

@@ -56,6 +56,18 @@ public class RazorGenerationService
         File.WriteAllText(jsPath, jsContent, System.Text.Encoding.UTF8);
         result.GeneratedFiles.Add(jsPath);
 
+        // Subreport partials
+        if (config.IncludeSubreports && report.Subreports.Count > 0)
+        {
+            var partials = SubreportPartialGenerator.Generate(report, config);
+            foreach (var (fileName, content) in partials)
+            {
+                string partialPath = Path.Combine(config.OutputDirectory, fileName);
+                File.WriteAllText(partialPath, content, System.Text.Encoding.UTF8);
+                result.GeneratedFiles.Add(partialPath);
+            }
+        }
+
         return result;
     }
 }
