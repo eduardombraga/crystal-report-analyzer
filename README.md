@@ -49,7 +49,17 @@ dotnet run --project CrystalReportAnalyzer/CrystalReportAnalyzer.csproj
 
 ## Architecture
 
-See [CLAUDE.md](CLAUDE.md) for a detailed description of the architecture, data flow, and complexity scoring algorithm.
+The project is organized around a pipeline: **Extractors → Service → Analyzers → UI / Exporters**.
+
+- **Extractors** — one class per concern (`DatabaseExtractor`, `FormulaExtractor`, `ParameterExtractor`, `GroupExtractor`, `SectionExtractor`, `SubreportExtractor`), each receiving a `ReportDocument` and returning typed model objects.
+- **ReportAnalysisService** — orchestrates all extractors, then feeds the result to two analyzers:
+  - `ComplexityAnalyzer` — scores the report and classifies it as Simple / Medium / Complex / Very Complex.
+  - `DependencyAnalyzer` — classifies each database object as Table, View, Stored Procedure, or Function based on naming conventions.
+- **CSharpCodeGenerator** — produces four C# code blocks (DTOs, parameter class, service interface, business rules) to assist migration away from Crystal Reports.
+- **Exporters** — `JsonExporter` serializes the full model; `CSharpExporter` writes the generated stubs to a `.cs` file.
+- **MainWindow** — WPF code-behind (no MVVM) that drives the tree view, score card, dependency panel, and export buttons.
+
+For full details — scoring weights, type inference rules, and data flow — see [CLAUDE.md](CLAUDE.md).
 
 ## License
 
