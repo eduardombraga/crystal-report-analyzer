@@ -1,0 +1,68 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>CrystalReportAnalyzer</AssemblyName>
+    <RootNamespace>CrystalReportAnalyzer</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <!--
+      Crystal Reports runtime is 32-bit. Uncomment if you get loader errors:
+      <PlatformTarget>x86</PlatformTarget>
+    -->
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!--
+      Crystal Reports for Visual Studio must be installed.
+      Download: https://www.sap.com/products/crystal-reports/downloads.html
+
+      After installation, copy the following DLLs to the libs\ folder:
+        - CrystalDecisions.CrystalReports.Engine.dll
+        - CrystalDecisions.Shared.dll
+        - CrystalDecisions.ReportSource.dll
+
+      Common install path (may vary by CR version):
+        C:\Program Files (x86)\SAP BusinessObjects\Crystal Reports for .NET Framework 4.0\
+          Common\SAP BusinessObjects Enterprise XI 4.0\win32_x86\
+
+      Alternative: target net48 instead of net8.0-windows for full CR compatibility.
+    -->
+    <CrystalReportsDir Condition="'$(CrystalReportsDir)' == ''">libs</CrystalReportsDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="CrystalDecisions.CrystalReports.Engine">
+      <HintPath>$(CrystalReportsDir)\CrystalDecisions.CrystalReports.Engine.dll</HintPath>
+    </Reference>
+    <Reference Include="CrystalDecisions.Shared">
+      <HintPath>$(CrystalReportsDir)\CrystalDecisions.Shared.dll</HintPath>
+    </Reference>
+    <Reference Include="CrystalDecisions.ReportSource">
+      <HintPath>$(CrystalReportsDir)\CrystalDecisions.ReportSource.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- System.Text.Json não é embutido no .NET Framework 4.8 -->
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+
+  <!--
+    Copy ALL CrystalDecisions DLLs from libs\ to the output directory so that
+    assemblies loaded dynamically at runtime (e.g. ReportAppServer.ClientDoc)
+    are found next to the executable.
+    Put every CrystalDecisions*.dll from your CR install here.
+  -->
+  <ItemGroup>
+    <Content Include="$(CrystalReportsDir)\CrystalDecisions.*.dll"
+             Condition="Exists('$(CrystalReportsDir)')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,10 @@
+# Build output
+bin/
+obj/
+.vs/
+*.user
+
+# Crystal Reports DLLs — proprietary SAP runtime, NOT redistributable.
+# Install Crystal Reports for Visual Studio and copy DLLs to libs/ manually.
+# Download: https://www.sap.com/products/crystal-reports/downloads.html
+CrystalReportAnalyzer/libs/
