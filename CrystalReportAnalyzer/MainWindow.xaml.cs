@@ -113,13 +113,13 @@ namespace CrystalReportAnalyzer
 
         private void BuildReportTree(ReportModel report)
         {
+            HideFormulaDetail();
             ReportTreeView.Items.Clear();
 
             var root = Node($"Relatório: {report.Name}", expanded: true);
 
             root.Items.Add(BuildTableNodes(report));
-            root.Items.Add(BuildLeafNodes($"Fórmulas ({report.Formulas.Count})",
-                report.Formulas.Select(f => $"{f.Name}  [{f.ReturnType}]")));
+            root.Items.Add(BuildFormulaNodes(report));
             root.Items.Add(BuildLeafNodes($"Parâmetros ({report.Parameters.Count})",
                 report.Parameters.Select(p => $"? {p.Name}  [{p.ValueType}]")));
             root.Items.Add(BuildLeafNodes($"Grupos ({report.Groups.Count})",
@@ -154,6 +154,49 @@ namespace CrystalReportAnalyzer
                                       expanded: false));
             }
             return parent;
+        }
+
+        private static TreeViewItem BuildFormulaNodes(ReportModel report)
+        {
+            var parent = Node($"Fórmulas ({report.Formulas.Count})");
+            foreach (var formula in report.Formulas)
+                parent.Items.Add(new TreeViewItem
+                {
+                    Header = $"{formula.Name}  [{formula.ReturnType}]",
+                    IsExpanded = false,
+                    Tag = formula,
+                });
+            return parent;
+        }
+
+        private void ReportTreeView_SelectedItemChanged(object sender,
+            RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (e.NewValue is TreeViewItem { Tag: FormulaModel formula })
+                ShowFormulaDetail(formula);
+            else
+                HideFormulaDetail();
+        }
+
+        private void ShowFormulaDetail(FormulaModel formula)
+        {
+            FormulaDetailTitle.Text      = formula.Name;
+            FormulaDetailReturnType.Text = formula.ReturnType;
+            FormulaDetailText.Text       = formula.Text.Replace("\r", "");
+
+            var combined = formula.ReferencedFormulas.Concat(formula.ReferencedRunningTotals).ToList();
+            FormulaDbFieldsList.ItemsSource   = formula.ReferencedDbFields;
+            FormulaParametersList.ItemsSource = formula.ReferencedParameters;
+            FormulaReferencesList.ItemsSource = combined;
+
+            FormulaDetailPanel.Visibility = Visibility.Visible;
+            StatsCard.Visibility          = Visibility.Collapsed;
+        }
+
+        private void HideFormulaDetail()
+        {
+            FormulaDetailPanel.Visibility = Visibility.Collapsed;
+            StatsCard.Visibility          = Visibility.Visible;
         }
 
         private static TreeViewItem BuildLeafNodes(string header, IEnumerable<string> items)

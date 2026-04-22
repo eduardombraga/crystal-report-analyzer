@@ -186,7 +186,8 @@
                     <TreeView x:Name="ReportTreeView"
                               BorderThickness="0"
                               Background="Transparent"
-                              FontSize="13"/>
+                              FontSize="13"
+                              SelectedItemChanged="ReportTreeView_SelectedItemChanged"/>
                 </DockPanel>
             </Border>
 
@@ -258,8 +259,82 @@
                     </Grid>
                 </Border>
 
+                <!-- Detalhe de Fórmula (visível ao selecionar fórmula na árvore) -->
+                <Border x:Name="FormulaDetailPanel"
+                        Grid.Row="1"
+                        Style="{StaticResource Card}"
+                        Visibility="Collapsed">
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                            <TextBlock x:Name="FormulaDetailTitle"
+                                       FontSize="15" FontWeight="SemiBold" Foreground="#2C3E50"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                <TextBlock Text="Tipo de retorno: " FontSize="12" Foreground="#95A5A6"/>
+                                <TextBlock x:Name="FormulaDetailReturnType"
+                                           FontSize="12" FontWeight="SemiBold" Foreground="#2980B9"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Border DockPanel.Dock="Bottom"
+                                BorderBrush="#ECF0F1" BorderThickness="0,1,0,0"
+                                Padding="0,10,0,0" Margin="0,10,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                    <TextBlock Text="Campos BD" FontSize="11" FontWeight="SemiBold"
+                                               Foreground="#95A5A6" Margin="0,0,0,4"/>
+                                    <ItemsControl x:Name="FormulaDbFieldsList">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding}" FontSize="11"
+                                                           Foreground="#2C3E50" TextWrapping="Wrap"/>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                                    <TextBlock Text="Parâmetros" FontSize="11" FontWeight="SemiBold"
+                                               Foreground="#95A5A6" Margin="0,0,0,4"/>
+                                    <ItemsControl x:Name="FormulaParametersList">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding}" FontSize="11" Foreground="#2C3E50"/>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Fórmulas / Totais ref." FontSize="11" FontWeight="SemiBold"
+                                               Foreground="#95A5A6" Margin="0,0,0,4"/>
+                                    <ItemsControl x:Name="FormulaReferencesList">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding}" FontSize="11" Foreground="#2C3E50"/>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Auto">
+                            <TextBlock x:Name="FormulaDetailText"
+                                       FontFamily="Consolas, Courier New"
+                                       FontSize="12"
+                                       Foreground="#2C3E50"
+                                       TextWrapping="NoWrap"
+                                       xml:space="preserve"/>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
+
                 <!-- Estatísticas -->
-                <Border Grid.Row="1" Style="{StaticResource Card}">
+                <Border x:Name="StatsCard" Grid.Row="1" Style="{StaticResource Card}">
                     <DockPanel>
                         <TextBlock DockPanel.Dock="Top"
                                    Text="Estatísticas"

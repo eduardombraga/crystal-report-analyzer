@@ -11,11 +11,17 @@ public static class FormulaExtractor
 
         foreach (FormulaFieldDefinition formula in doc.DataDefinition.FormulaFields)
         {
+            var text = TryGetText(formula);
+            var refs = FormulaReferenceParser.Parse(text);
             formulas.Add(new FormulaModel
             {
-                Name       = formula.Name,
-                Text       = TryGetText(formula),
-                ReturnType = formula.ValueType.ToString(),
+                Name                    = formula.Name,
+                Text                    = text,
+                ReturnType              = formula.ValueType.ToString(),
+                ReferencedDbFields      = refs.DbFields,
+                ReferencedParameters    = refs.Parameters,
+                ReferencedFormulas      = refs.OtherFormulas,
+                ReferencedRunningTotals = refs.RunningTotals,
             });
         }
 
