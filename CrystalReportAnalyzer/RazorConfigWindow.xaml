@@ -1,0 +1,88 @@
+<Window x:Class="CrystalReportAnalyzer.RazorConfigWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Configuração — Geração .cshtml"
+        Width="480" Height="380"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="#F5F6FA">
+
+    <Window.Resources>
+        <Style TargetType="TextBlock" x:Key="Label">
+            <Setter Property="FontSize"   Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="Margin"     Value="0,0,0,4"/>
+        </Style>
+        <Style TargetType="TextBox" x:Key="Field">
+            <Setter Property="FontSize"        Value="13"/>
+            <Setter Property="Padding"         Value="6,5"/>
+            <Setter Property="Margin"          Value="0,0,0,14"/>
+            <Setter Property="BorderBrush"     Value="#DDE0E7"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style TargetType="Button" x:Key="PrimaryBtn">
+            <Setter Property="Background"      Value="#2980B9"/>
+            <Setter Property="Foreground"      Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding"         Value="18,7"/>
+            <Setter Property="FontSize"        Value="13"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#2471A3"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="Button" x:Key="SecondaryBtn" BasedOn="{StaticResource PrimaryBtn}">
+            <Setter Property="Background" Value="#7F8C8D"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#626567"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <StackPanel Margin="24">
+
+        <TextBlock Text="Namespace base" Style="{StaticResource Label}"/>
+        <TextBlock Text="Usado nos arquivos C# gerados (Controller, ViewModel)."
+                   FontSize="11" Foreground="#7F8C8D" Margin="0,0,0,4"/>
+        <TextBox x:Name="NamespaceBox" Style="{StaticResource Field}" Text="Generated"/>
+
+        <TextBlock Text="Layout path (Index)" Style="{StaticResource Label}"/>
+        <TextBlock Text="Caminho do layout usado no Index.cshtml."
+                   FontSize="11" Foreground="#7F8C8D" Margin="0,0,0,4"/>
+        <TextBox x:Name="LayoutPathBox" Style="{StaticResource Field}" Text="~/Views/Shared/_LayoutNew.cshtml"/>
+
+        <TextBlock Text="Layout path (Report)" Style="{StaticResource Label}"/>
+        <TextBlock Text="Caminho do layout usado no Report.cshtml (versão impressão)."
+                   FontSize="11" Foreground="#7F8C8D" Margin="0,0,0,4"/>
+        <TextBox x:Name="ReportLayoutPathBox" Style="{StaticResource Field}" Text="Reports/_Layout"/>
+
+        <CheckBox x:Name="IncludeSubreportsCheck"
+                  Content="Gerar partials para sub-relatórios"
+                  FontSize="12" Foreground="#2C3E50"
+                  Margin="0,0,0,20"
+                  IsChecked="True"/>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Cancelar" Style="{StaticResource SecondaryBtn}"
+                    Margin="0,0,10,0" Click="Cancel_Click"/>
+            <Button Content="Gerar" Style="{StaticResource PrimaryBtn}"
+                    Click="Generate_Click"/>
+        </StackPanel>
+
+    </StackPanel>
+</Window>

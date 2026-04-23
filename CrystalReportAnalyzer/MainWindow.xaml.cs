@@ -7,8 +7,10 @@ using CrystalReportAnalyzer.Core.Configuration;
 using CrystalReportAnalyzer.Core.Models;
 using System.Windows.Controls.Primitives;
 using CrystalReportAnalyzer.Core.Services;
+using CrystalReportAnalyzer.Core.Services.RazorGeneration;
 using CrystalReportAnalyzer.Exporters;
 using System.IO;
+using WinForms = System.Windows.Forms;
 
 namespace CrystalReportAnalyzer
 {
@@ -94,6 +96,7 @@ namespace CrystalReportAnalyzer
                 DisplayStats(_currentReport);
                 DisplayDependencies(_currentReport);
                 ExportButton.IsEnabled = true;
+                GenerateRazorButton.IsEnabled = true;
 
                 SetStatus($"Análise concluída: {_currentReport.Name}");
             }
@@ -291,6 +294,56 @@ namespace CrystalReportAnalyzer
                 new("Score",           r.Complexity!.Score.ToString()),
                 new("Classificação",   r.Complexity.LevelDescription),
             };
+        }
+
+        // ── Razor generation ─────────────────────────────────────────────
+
+        private void GenerateRazor_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentReport is null) return;
+
+            // Step 1: configuration dialog
+            var configWindow = new RazorConfigWindow(new RazorGenerationConfig()) { Owner = this };
+            if (configWindow.ShowDialog() != true || configWindow.Result is null) return;
+
+            // Step 2: choose output folder
+            using var folderDialog = new WinForms.FolderBrowserDialog
+            {
+                Description         = "Selecione a pasta de destino para os arquivos gerados",
+                ShowNewFolderButton = true,
+            };
+
+            if (folderDialog.ShowDialog() != WinForms.DialogResult.OK) return;
+
+            try
+            {
+                var config = configWindow.Result;
+                config.OutputDirectory   = folderDialog.SelectedPath;
+                config.IncludeSubreports = configWindow.IncludeSubreports;
+
+                var service = new RazorGenerationService();
+                var result  = service.Generate(_currentReport, config);
+
+                // Step 3: preview dialog
+                string fileList = string.Join("\n", result.GeneratedFiles.Select(Path.GetFileName));
+                var preview = System.Windows.MessageBox.Show(
+                    $"{result.GeneratedFiles.Count} arquivo(s) gerado(s) com sucesso!\n\n" +
+                    $"Pasta: {folderDialog.SelectedPath}\n\n" +
+                    fileList + "\n\nDeseja abrir a pasta?",
+                    "Geração .cshtml",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Information);
+
+                if (preview == MessageBoxResult.Yes)
+                    System.Diagnostics.Process.Start("explorer.exe", folderDialog.SelectedPath);
+
+                SetStatus($"Gerado: {result.GeneratedFiles.Count} arquivo(s) em {folderDialog.SelectedPath}");
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Erro ao gerar .cshtml:\n{ex.Message}", "Erro",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         // ── Export ───────────────────────────────────────────────────────
