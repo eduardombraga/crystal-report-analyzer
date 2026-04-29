@@ -278,19 +278,35 @@ namespace CrystalReportAnalyzer
 
         private void DisplayStats(ReportModel r)
         {
-            StatsPanel.ItemsSource = new StatItem[]
+            var items = new List<StatItem>
             {
-                new("Relatório",       r.Name),
-                new("Tabelas",         r.Tables.Count.ToString()),
-                new("Campos (total)",  r.Fields.Count.ToString()),
-                new("Fórmulas",        r.Formulas.Count.ToString()),
-                new("Parâmetros",      r.Parameters.Count.ToString()),
-                new("Grupos",          r.Groups.Count.ToString()),
-                new("Seções",          r.Sections.Count.ToString()),
-                new("Sub-Relatórios",  r.Subreports.Count.ToString()),
-                new("Score",           r.Complexity!.Score.ToString()),
-                new("Classificação",   r.Complexity.LevelDescription),
+                new("Relatório",  r.Name),
+                new("Orientação", r.PaperOrientation),
+                new("Papel",      r.PaperSize),
+                new("Margens",    $"↑{r.MarginTopMm}mm  ↓{r.MarginBottomMm}mm  ←{r.MarginLeftMm}mm  →{r.MarginRightMm}mm"),
             };
+
+            if (!string.IsNullOrEmpty(r.ReportTitle))   items.Add(new("Título",  r.ReportTitle));
+            if (!string.IsNullOrEmpty(r.ReportAuthor))  items.Add(new("Autor",   r.ReportAuthor));
+            if (!string.IsNullOrEmpty(r.ReportSubject)) items.Add(new("Assunto", r.ReportSubject));
+
+            if (r.FontsUsed.Count > 0)
+                items.Add(new("Fontes", string.Join(", ", r.FontsUsed)));
+
+            items.AddRange(new StatItem[]
+            {
+                new("Tabelas",        r.Tables.Count.ToString()),
+                new("Campos (total)", r.Fields.Count.ToString()),
+                new("Fórmulas",       r.Formulas.Count.ToString()),
+                new("Parâmetros",     r.Parameters.Count.ToString()),
+                new("Grupos",         r.Groups.Count.ToString()),
+                new("Seções",         r.Sections.Count.ToString()),
+                new("Sub-Relatórios", r.Subreports.Count.ToString()),
+                new("Score",          r.Complexity!.Score.ToString()),
+                new("Classificação",  r.Complexity.LevelDescription),
+            });
+
+            StatsPanel.ItemsSource = items;
         }
 
         // ── Export ───────────────────────────────────────────────────────

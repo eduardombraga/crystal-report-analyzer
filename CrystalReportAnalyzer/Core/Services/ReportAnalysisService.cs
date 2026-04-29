@@ -14,16 +14,31 @@ public class ReportAnalysisService
         using var doc = new ReportDocument();
         doc.Load(filePath);
 
+        var printOptions = doc.PrintOptions;
+        var margins      = printOptions.PageMargins;
+        var summary      = doc.SummaryInfo;
+
         var report = new ReportModel
         {
-            Name      = Path.GetFileNameWithoutExtension(filePath),
-            FilePath  = filePath,
-            Tables     = DatabaseExtractor.Extract(doc),
+            Name             = Path.GetFileNameWithoutExtension(filePath),
+            FilePath         = filePath,
+            PaperOrientation = printOptions.PaperOrientation.ToString(),
+            PaperSize        = printOptions.PaperSize.ToString(),
+            MarginTopMm      = TwipsToMm(margins.topMargin),
+            MarginBottomMm   = TwipsToMm(margins.bottomMargin),
+            MarginLeftMm     = TwipsToMm(margins.leftMargin),
+            MarginRightMm    = TwipsToMm(margins.rightMargin),
+            ReportTitle      = summary.ReportTitle    ?? string.Empty,
+            ReportAuthor     = summary.ReportAuthor   ?? string.Empty,
+            ReportSubject    = summary.ReportSubject  ?? string.Empty,
+            ReportComments   = summary.ReportComments ?? string.Empty,
+            Tables           = DatabaseExtractor.Extract(doc),
             Parameters = ParameterExtractor.Extract(doc),
             Formulas   = FormulaExtractor.Extract(doc),
             Groups     = GroupExtractor.Extract(doc),
             Sections   = SectionExtractor.Extract(doc),
             Subreports = SubreportExtractor.Extract(doc),
+            FontsUsed  = FontExtractor.Extract(doc),
         };
 
         // Flatten all fields from all tables for top-level access
@@ -42,4 +57,7 @@ public class ReportAnalysisService
 
         return report;
     }
+
+    private static double TwipsToMm(int twips) =>
+        Math.Round(twips * 25.4 / 1440.0, 1);
 }
