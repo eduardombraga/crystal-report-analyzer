@@ -185,7 +185,7 @@ public static class CSharpCodeGenerator
     };
 
     /// <summary>Converts an arbitrary name into a valid PascalCase C# identifier.</summary>
-    private static string ToIdentifier(string name)
+    internal static string ToIdentifier(string name)
     {
         if (string.IsNullOrEmpty(name)) return "Unknown";
 

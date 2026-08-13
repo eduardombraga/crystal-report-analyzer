@@ -218,10 +218,10 @@ namespace CrystalReportAnalyzer
                 ? "Carregamento sob demanda (on-demand)"
                 : "Carregado junto com o relatório principal";
 
-            string subPrefix = ToPascalIdentifier(subreport.Name);
+            string subPrefix = CSharpCodeGenerator.ToIdentifier(subreport.Name);
             SubreportTablesList.ItemsSource = subreport.Tables.Select(table => new SubreportTableRow(
                 TableName:    table.Name,
-                DtoClassName: subPrefix + ToPascalIdentifier(table.Name) + "Dto",
+                DtoClassName: subPrefix + CSharpCodeGenerator.ToIdentifier(table.Name) + "Dto",
                 FieldSummary: string.Join(", ", table.Fields.Select(f => $"{f.Name} ({f.ValueType})"))
             )).ToList();
 
@@ -384,33 +384,6 @@ namespace CrystalReportAnalyzer
         }
 
         private void SetStatus(string message) => StatusText.Text = message;
-
-        private static string ToPascalIdentifier(string name)
-        {
-            if (string.IsNullOrEmpty(name)) return "Unknown";
-
-            name = name.TrimStart('@').Trim();
-            var sb = new System.Text.StringBuilder();
-            bool capitalizeNext = true;
-
-            foreach (char c in name)
-            {
-                if (char.IsLetterOrDigit(c))
-                {
-                    sb.Append(capitalizeNext ? char.ToUpper(c) : c);
-                    capitalizeNext = false;
-                }
-                else
-                {
-                    capitalizeNext = true;
-                }
-            }
-
-            string result = sb.ToString();
-            if (result.Length == 0) return "Unknown";
-            if (char.IsDigit(result[0])) result = "_" + result;
-            return result;
-        }
 
         private record SubreportTableRow(string TableName, string DtoClassName, string FieldSummary);
     }
