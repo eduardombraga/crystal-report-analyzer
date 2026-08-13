@@ -17,12 +17,24 @@ public static class SubreportExtractor
                 if (obj is not SubreportObject sub) continue;
                 if (!seen.Add(sub.SubreportName))   continue; // deduplicate
 
-                subreports.Add(new SubreportModel
+                var model = new SubreportModel
                 {
                     Name       = sub.SubreportName,
                     Location   = section.Name,
                     IsOnDemand = sub.EnableOnDemand,
-                });
+                };
+
+                try
+                {
+                    var subDoc = sub.OpenSubreport(sub.SubreportName);
+                    model.Tables = DatabaseExtractor.Extract(subDoc);
+                }
+                catch (Exception)
+                {
+                    // Broken/unbound subreport link — leave Tables empty.
+                }
+
+                subreports.Add(model);
             }
         }
 
