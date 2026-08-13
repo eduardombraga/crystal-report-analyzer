@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text;
 using CrystalReportAnalyzer.Core.Models;
 
@@ -12,7 +13,9 @@ public static class CSharpCodeGenerator
 
     public static string GenerateDtos(ReportModel report)
     {
-        if (report.Tables.Count == 0) return string.Empty;
+        bool hasMainTables = report.Tables.Count > 0;
+        bool hasSubTables  = report.Subreports.Any(s => s.Tables.Count > 0);
+        if (!hasMainTables && !hasSubTables) return string.Empty;
 
         var sb = new StringBuilder();
         sb.AppendLine($"// DTOs gerados a partir do relatório: {report.Name}");
@@ -22,22 +25,34 @@ public static class CSharpCodeGenerator
         sb.AppendLine();
 
         foreach (var table in report.Tables)
+            AppendDtoClass(sb, ToIdentifier(table.Name) + "Dto",
+                $"DTO para a tabela/view '{table.Name}'", table.Fields);
+
+        foreach (var sub in report.Subreports)
         {
-            string className = ToIdentifier(table.Name) + "Dto";
-            sb.AppendLine($"/// <summary>DTO para a tabela/view '{table.Name}'</summary>");
-            sb.AppendLine($"public class {className}");
-            sb.AppendLine("{");
-            foreach (var field in table.Fields)
-            {
-                string propType = MapToCSharpType(field.ValueType);
-                string propName = ToIdentifier(field.Name);
-                sb.AppendLine($"    public {propType} {propName} {{ get; set; }}");
-            }
-            sb.AppendLine("}");
-            sb.AppendLine();
+            string subPrefix = ToIdentifier(sub.Name);
+            foreach (var table in sub.Tables)
+                AppendDtoClass(sb, subPrefix + ToIdentifier(table.Name) + "Dto",
+                    $"DTO para a tabela/view '{table.Name}' do sub-relatório '{sub.Name}'", table.Fields);
         }
 
         return sb.ToString().TrimEnd();
+    }
+
+    private static void AppendDtoClass(StringBuilder sb, string className, string summary,
+        List<FieldModel> fields)
+    {
+        sb.AppendLine($"/// <summary>{summary}</summary>");
+        sb.AppendLine($"public class {className}");
+        sb.AppendLine("{");
+        foreach (var field in fields)
+        {
+            string propType = MapToCSharpType(field.ValueType);
+            string propName = ToIdentifier(field.Name);
+            sb.AppendLine($"    public {propType} {propName} {{ get; set; }}");
+        }
+        sb.AppendLine("}");
+        sb.AppendLine();
     }
 
     public static string GenerateParameterClass(ReportModel report)
