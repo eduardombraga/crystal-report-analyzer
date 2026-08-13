@@ -5,4 +5,5 @@ public class SubreportModel
     public string Name { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;
     public bool IsOnDemand { get; set; }
+    public List<TableModel> Tables { get; set; } = new();
 }
