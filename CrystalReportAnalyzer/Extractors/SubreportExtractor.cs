@@ -29,9 +29,11 @@ public static class SubreportExtractor
                     var subDoc = sub.OpenSubreport(sub.SubreportName);
                     model.Tables = DatabaseExtractor.Extract(subDoc);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // Broken/unbound subreport link — leave Tables empty.
+                    // Broken/unbound subreport link — leave Tables empty, but surface for debugging.
+                    System.Diagnostics.Debug.WriteLine(
+                        $"SubreportExtractor: failed to open subreport '{sub.SubreportName}': {ex.Message}");
                 }
 
                 subreports.Add(model);
