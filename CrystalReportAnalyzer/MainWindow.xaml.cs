@@ -113,7 +113,7 @@ namespace CrystalReportAnalyzer
 
         private void BuildReportTree(ReportModel report)
         {
-            HideFormulaDetail();
+            HideAllDetailPanels();
             ReportTreeView.Items.Clear();
 
             var root = Node($"Relatório: {report.Name}", expanded: true);
@@ -125,8 +125,7 @@ namespace CrystalReportAnalyzer
             root.Items.Add(BuildLeafNodes($"Grupos ({report.Groups.Count})",
                 report.Groups.Select(g => $"» {g.ConditionField}")));
             root.Items.Add(BuildSectionNodes(report));
-            root.Items.Add(BuildLeafNodes($"Sub-Relatórios ({report.Subreports.Count})",
-                report.Subreports.Select(s => s.IsOnDemand ? $"{s.Name}  [on-demand]" : s.Name)));
+            root.Items.Add(BuildSubreportNodes(report));
 
             ReportTreeView.Items.Add(root);
         }
@@ -169,13 +168,31 @@ namespace CrystalReportAnalyzer
             return parent;
         }
 
+        private static TreeViewItem BuildSubreportNodes(ReportModel report)
+        {
+            var parent = Node($"Sub-Relatórios ({report.Subreports.Count})");
+            foreach (var sub in report.Subreports)
+            {
+                string label = sub.IsOnDemand ? $"{sub.Name}  [on-demand]" : sub.Name;
+                parent.Items.Add(new TreeViewItem
+                {
+                    Header = label,
+                    IsExpanded = false,
+                    Tag = sub,
+                });
+            }
+            return parent;
+        }
+
         private void ReportTreeView_SelectedItemChanged(object sender,
             RoutedPropertyChangedEventArgs<object> e)
         {
             if (e.NewValue is TreeViewItem { Tag: FormulaModel formula })
                 ShowFormulaDetail(formula);
+            else if (e.NewValue is TreeViewItem { Tag: SubreportModel subreport })
+                ShowSubreportDetail(subreport);
             else
-                HideFormulaDetail();
+                HideAllDetailPanels();
         }
 
         private void ShowFormulaDetail(FormulaModel formula)
@@ -189,14 +206,35 @@ namespace CrystalReportAnalyzer
             FormulaParametersList.ItemsSource = formula.ReferencedParameters;
             FormulaReferencesList.ItemsSource = combined;
 
-            FormulaDetailPanel.Visibility = Visibility.Visible;
-            StatsCard.Visibility          = Visibility.Collapsed;
+            FormulaDetailPanel.Visibility   = Visibility.Visible;
+            SubreportDetailPanel.Visibility = Visibility.Collapsed;
+            StatsCard.Visibility            = Visibility.Collapsed;
         }
 
-        private void HideFormulaDetail()
+        private void ShowSubreportDetail(SubreportModel subreport)
         {
-            FormulaDetailPanel.Visibility = Visibility.Collapsed;
-            StatsCard.Visibility          = Visibility.Visible;
+            SubreportDetailTitle.Text     = subreport.Name;
+            SubreportDetailOnDemand.Text  = subreport.IsOnDemand
+                ? "Carregamento sob demanda (on-demand)"
+                : "Carregado junto com o relatório principal";
+
+            string subPrefix = ToPascalIdentifier(subreport.Name);
+            SubreportTablesList.ItemsSource = subreport.Tables.Select(table => new SubreportTableRow(
+                TableName:    table.Name,
+                DtoClassName: subPrefix + ToPascalIdentifier(table.Name) + "Dto",
+                FieldSummary: string.Join(", ", table.Fields.Select(f => $"{f.Name} ({f.ValueType})"))
+            )).ToList();
+
+            SubreportDetailPanel.Visibility = Visibility.Visible;
+            FormulaDetailPanel.Visibility   = Visibility.Collapsed;
+            StatsCard.Visibility            = Visibility.Collapsed;
+        }
+
+        private void HideAllDetailPanels()
+        {
+            FormulaDetailPanel.Visibility   = Visibility.Collapsed;
+            SubreportDetailPanel.Visibility = Visibility.Collapsed;
+            StatsCard.Visibility            = Visibility.Visible;
         }
 
         private static TreeViewItem BuildLeafNodes(string header, IEnumerable<string> items)
@@ -346,6 +384,35 @@ namespace CrystalReportAnalyzer
         }
 
         private void SetStatus(string message) => StatusText.Text = message;
+
+        private static string ToPascalIdentifier(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return "Unknown";
+
+            name = name.TrimStart('@').Trim();
+            var sb = new System.Text.StringBuilder();
+            bool capitalizeNext = true;
+
+            foreach (char c in name)
+            {
+                if (char.IsLetterOrDigit(c))
+                {
+                    sb.Append(capitalizeNext ? char.ToUpper(c) : c);
+                    capitalizeNext = false;
+                }
+                else
+                {
+                    capitalizeNext = true;
+                }
+            }
+
+            string result = sb.ToString();
+            if (result.Length == 0) return "Unknown";
+            if (char.IsDigit(result[0])) result = "_" + result;
+            return result;
+        }
+
+        private record SubreportTableRow(string TableName, string DtoClassName, string FieldSummary);
     }
 
     // Simple DTO for the statistics ItemsControl binding
