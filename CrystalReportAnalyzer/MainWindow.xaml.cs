@@ -149,8 +149,12 @@ namespace CrystalReportAnalyzer
             foreach (var sec in report.Sections)
             {
                 string hidden = sec.IsVisible ? "" : "  [oculta]";
-                parent.Items.Add(Node($"[{sec.Kind}] {sec.Name}  {sec.ObjectCount} obj{hidden}",
-                                      expanded: false));
+                parent.Items.Add(new TreeViewItem
+                {
+                    Header = $"[{sec.Kind}] {sec.Name}  {sec.ObjectCount} obj{hidden}",
+                    IsExpanded = false,
+                    Tag = sec,
+                });
             }
             return parent;
         }
@@ -191,6 +195,8 @@ namespace CrystalReportAnalyzer
                 ShowFormulaDetail(formula);
             else if (e.NewValue is TreeViewItem { Tag: SubreportModel subreport })
                 ShowSubreportDetail(subreport);
+            else if (e.NewValue is TreeViewItem { Tag: SectionModel section })
+                ShowSectionDetail(section);
             else
                 HideAllDetailPanels();
         }
@@ -208,6 +214,7 @@ namespace CrystalReportAnalyzer
 
             FormulaDetailPanel.Visibility   = Visibility.Visible;
             SubreportDetailPanel.Visibility = Visibility.Collapsed;
+            SectionDetailPanel.Visibility   = Visibility.Collapsed;
             StatsCard.Visibility            = Visibility.Collapsed;
         }
 
@@ -227,13 +234,45 @@ namespace CrystalReportAnalyzer
 
             SubreportDetailPanel.Visibility = Visibility.Visible;
             FormulaDetailPanel.Visibility   = Visibility.Collapsed;
+            SectionDetailPanel.Visibility   = Visibility.Collapsed;
             StatsCard.Visibility            = Visibility.Collapsed;
         }
+
+        private void ShowSectionDetail(SectionModel section)
+        {
+            SectionDetailTitle.Text = section.Name;
+            SectionDetailKind.Text  = $"Tipo: {section.Kind}";
+
+            SectionPropertiesList.ItemsSource = new List<SectionPropertyRow>
+            {
+                new("Suprimir",                    YesNo(!section.IsVisible)),
+                new("Suprimir se em branco",        YesNo(section.SuppressIfBlank)),
+                new("Nova página antes",            YesNo(section.NewPageBefore)),
+                new("Nova página depois",           YesNo(section.NewPageAfter)),
+                new("Reiniciar número de página",   YesNo(section.ResetPageNumberAfter)),
+                new("Manter juntos",                YesNo(section.KeepTogether)),
+                new("Sublinhar seções seguintes",   YesNo(section.UnderlayFollowingSections)),
+            };
+
+            bool hasSuppressFormula = !string.IsNullOrWhiteSpace(section.SuppressFormulaText);
+            SectionSuppressFormulaPanel.Visibility = hasSuppressFormula ? Visibility.Visible : Visibility.Collapsed;
+            SectionSuppressFormulaText.Text        = hasSuppressFormula
+                ? section.SuppressFormulaText.Replace("\r", "")
+                : string.Empty;
+
+            SectionDetailPanel.Visibility    = Visibility.Visible;
+            FormulaDetailPanel.Visibility    = Visibility.Collapsed;
+            SubreportDetailPanel.Visibility  = Visibility.Collapsed;
+            StatsCard.Visibility             = Visibility.Collapsed;
+        }
+
+        private static string YesNo(bool value) => value ? "Sim" : "Não";
 
         private void HideAllDetailPanels()
         {
             FormulaDetailPanel.Visibility   = Visibility.Collapsed;
             SubreportDetailPanel.Visibility = Visibility.Collapsed;
+            SectionDetailPanel.Visibility   = Visibility.Collapsed;
             StatsCard.Visibility            = Visibility.Visible;
         }
 
@@ -386,6 +425,7 @@ namespace CrystalReportAnalyzer
         private void SetStatus(string message) => StatusText.Text = message;
 
         private record SubreportTableRow(string TableName, string DtoClassName, string FieldSummary);
+        private record SectionPropertyRow(string Label, string Value);
     }
 
     // Simple DTO for the statistics ItemsControl binding
