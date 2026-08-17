@@ -11,6 +11,10 @@ public static class SectionExtractor
 {
     public static List<SectionModel> Extract(ReportDocument doc)
     {
+        // Pass 1: read everything from the Engine object model (doc.ReportDefinition.Sections)
+        // first, without touching RAS. Accessing doc.ReportClientDocument (needed for the suppress
+        // conditional formula) invalidates previously-obtained Engine Section COM references, so any
+        // Engine property access on a Section must happen strictly before RAS is touched at all.
         var sections = new List<SectionModel>();
 
         foreach (Section section in doc.ReportDefinition.Sections)
@@ -27,8 +31,16 @@ public static class SectionExtractor
                 ResetPageNumberAfter       = TryGetBool(section, s => s.SectionFormat.EnableResetPageNumberAfter, defaultValue: false),
                 KeepTogether               = TryGetBool(section, s => s.SectionFormat.EnableKeepTogether, defaultValue: false),
                 UnderlayFollowingSections  = TryGetBool(section, s => s.SectionFormat.EnableUnderlaySection, defaultValue: false),
-                SuppressFormulaText        = TryGetSuppressFormulaText(section, doc),
             });
+        }
+
+        // Pass 2: now that no Engine Section references are needed anymore, touch RAS exactly once
+        // to build a name -> suppress-formula-text lookup, then apply it to the already-built models.
+        var suppressFormulasByName = TryGetSuppressFormulasByName(doc);
+        foreach (var section in sections)
+        {
+            if (suppressFormulasByName.TryGetValue(section.Name, out var formulaText))
+                section.SuppressFormulaText = formulaText;
         }
 
         return sections;
@@ -41,16 +53,22 @@ public static class SectionExtractor
     }
 
     /// <summary>
-    /// Retrieves the "Suppress (No Drill-Down)" conditional formula text for a section, if any.
-    /// The Engine object model (CrystalDecisions.CrystalReports.Engine.SectionFormat) does not
-    /// expose conditional formula text directly, so this drops down to the Report Application
-    /// Server (RAS) object model via ReportDocument.ReportClientDocument, correlating the Engine
-    /// Section to the equivalent RAS ISCRSection by name.
-    /// Defensive: returns string.Empty on any failure (no RAS document, no matching section,
-    /// no suppress condition formula set, etc.) rather than throwing.
+    /// Retrieves the "Suppress (No Drill-Down)" conditional formula text for every section that has
+    /// one, keyed by section name. The Engine object model (CrystalDecisions.CrystalReports.Engine.
+    /// SectionFormat) does not expose conditional formula text directly, so this drops down to the
+    /// Report Application Server (RAS) object model via ReportDocument.ReportClientDocument.
+    /// IMPORTANT: touching ReportClientDocument invalidates previously-obtained Engine Section COM
+    /// references, so this traversal must be self-contained — it must not receive or touch any
+    /// Engine Section object, only plain strings/RAS types — and must run only once, after all
+    /// Engine-side section data has already been read.
+    /// Defensive: returns an empty dictionary on any failure (no RAS document, unsupported report,
+    /// etc.) rather than throwing; a section simply absent from the result has no conditional
+    /// suppress formula (or a lookup for it failed), which is indistinguishable by design.
     /// </summary>
-    private static string TryGetSuppressFormulaText(Section section, ReportDocument doc)
+    private static Dictionary<string, string> TryGetSuppressFormulasByName(ReportDocument doc)
     {
+        var result = new Dictionary<string, string>();
+
         try
         {
             var rcd = doc.ReportClientDocument;
@@ -58,30 +76,26 @@ public static class SectionExtractor
 
             foreach (RasArea area in reportDef.Areas)
             {
-                // Assumes section names are unique within reportDef.Areas (true for the main report;
-                // not verified whether this traversal includes subreport sections, which could share names).
                 foreach (RasSection rasSection in area.Sections)
                 {
-                    if (rasSection.Name != section.Name)
-                        continue;
-
                     if (rasSection.Format?.ConditionFormulas is not RasConditionFormulas conditionFormulas)
-                        return string.Empty;
+                        continue;
 
                     var suppressFormula = conditionFormulas[
                         CrSectionAreaFormatConditionFormulaTypeEnum.crSectionAreaConditionFormulaTypeEnableSuppress];
 
-                    return suppressFormula?.Text ?? string.Empty;
+                    string? formulaText = suppressFormula?.Text;
+                    if (!string.IsNullOrEmpty(formulaText))
+                        result[rasSection.Name] = formulaText!;
                 }
             }
-
-            return string.Empty;
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine(
-                $"SectionExtractor: failed to extract suppress formula for section '{section.Name}': {ex.Message}");
-            return string.Empty;
+                $"SectionExtractor: failed to extract section suppress formulas: {ex.Message}");
         }
+
+        return result;
     }
 }
