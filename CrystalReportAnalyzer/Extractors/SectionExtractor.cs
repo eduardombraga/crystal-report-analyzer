@@ -25,7 +25,7 @@ public static class SectionExtractor
                 NewPageBefore              = TryGetBool(section, s => s.SectionFormat.EnableNewPageBefore, defaultValue: false),
                 NewPageAfter               = TryGetBool(section, s => s.SectionFormat.EnableNewPageAfter, defaultValue: false),
                 ResetPageNumberAfter       = TryGetBool(section, s => s.SectionFormat.EnableResetPageNumberAfter, defaultValue: false),
-                KeepTogether                = TryGetBool(section, s => s.SectionFormat.EnableKeepTogether, defaultValue: false),
+                KeepTogether               = TryGetBool(section, s => s.SectionFormat.EnableKeepTogether, defaultValue: false),
                 UnderlayFollowingSections  = TryGetBool(section, s => s.SectionFormat.EnableUnderlaySection, defaultValue: false),
                 SuppressFormulaText        = TryGetSuppressFormulaText(section, doc),
             });
@@ -58,6 +58,8 @@ public static class SectionExtractor
 
             foreach (RasArea area in reportDef.Areas)
             {
+                // Assumes section names are unique within reportDef.Areas (true for the main report;
+                // not verified whether this traversal includes subreport sections, which could share names).
                 foreach (RasSection rasSection in area.Sections)
                 {
                     if (rasSection.Name != section.Name)
@@ -75,8 +77,10 @@ public static class SectionExtractor
 
             return string.Empty;
         }
-        catch
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine(
+                $"SectionExtractor: failed to extract suppress formula for section '{section.Name}': {ex.Message}");
             return string.Empty;
         }
     }
