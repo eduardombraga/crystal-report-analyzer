@@ -212,10 +212,7 @@ namespace CrystalReportAnalyzer
             FormulaParametersList.ItemsSource = formula.ReferencedParameters;
             FormulaReferencesList.ItemsSource = combined;
 
-            FormulaDetailPanel.Visibility   = Visibility.Visible;
-            SubreportDetailPanel.Visibility = Visibility.Collapsed;
-            SectionDetailPanel.Visibility   = Visibility.Collapsed;
-            StatsCard.Visibility            = Visibility.Collapsed;
+            SetActiveDetailPanel(FormulaDetailPanel);
         }
 
         private void ShowSubreportDetail(SubreportModel subreport)
@@ -232,10 +229,7 @@ namespace CrystalReportAnalyzer
                 FieldSummary: string.Join(", ", table.Fields.Select(f => $"{f.Name} ({f.ValueType})"))
             )).ToList();
 
-            SubreportDetailPanel.Visibility = Visibility.Visible;
-            FormulaDetailPanel.Visibility   = Visibility.Collapsed;
-            SectionDetailPanel.Visibility   = Visibility.Collapsed;
-            StatsCard.Visibility            = Visibility.Collapsed;
+            SetActiveDetailPanel(SubreportDetailPanel);
         }
 
         private void ShowSectionDetail(SectionModel section)
@@ -260,21 +254,20 @@ namespace CrystalReportAnalyzer
                 ? section.SuppressFormulaText.Replace("\r", "")
                 : string.Empty;
 
-            SectionDetailPanel.Visibility    = Visibility.Visible;
-            FormulaDetailPanel.Visibility    = Visibility.Collapsed;
-            SubreportDetailPanel.Visibility  = Visibility.Collapsed;
-            StatsCard.Visibility             = Visibility.Collapsed;
+            SetActiveDetailPanel(SectionDetailPanel);
         }
 
         private static string YesNo(bool value) => value ? "Sim" : "Não";
 
-        private void HideAllDetailPanels()
+        private void SetActiveDetailPanel(UIElement? active)
         {
-            FormulaDetailPanel.Visibility   = Visibility.Collapsed;
-            SubreportDetailPanel.Visibility = Visibility.Collapsed;
-            SectionDetailPanel.Visibility   = Visibility.Collapsed;
-            StatsCard.Visibility            = Visibility.Visible;
+            FormulaDetailPanel.Visibility   = ReferenceEquals(active, FormulaDetailPanel)   ? Visibility.Visible : Visibility.Collapsed;
+            SubreportDetailPanel.Visibility = ReferenceEquals(active, SubreportDetailPanel) ? Visibility.Visible : Visibility.Collapsed;
+            SectionDetailPanel.Visibility   = ReferenceEquals(active, SectionDetailPanel)   ? Visibility.Visible : Visibility.Collapsed;
+            StatsCard.Visibility            = active is null ? Visibility.Visible : Visibility.Collapsed;
         }
+
+        private void HideAllDetailPanels() => SetActiveDetailPanel(null);
 
         private static TreeViewItem BuildLeafNodes(string header, IEnumerable<string> items)
         {
