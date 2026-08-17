@@ -44,6 +44,21 @@
     <Reference Include="CrystalDecisions.ReportSource">
       <HintPath>$(CrystalReportsDir)\CrystalDecisions.ReportSource.dll</HintPath>
     </Reference>
+    <Reference Include="CrystalDecisions.ReportAppServer.ClientDoc">
+      <HintPath>$(CrystalReportsDir)\CrystalDecisions.ReportAppServer.ClientDoc.dll</HintPath>
+    </Reference>
+    <Reference Include="CrystalDecisions.ReportAppServer.Controllers">
+      <HintPath>$(CrystalReportsDir)\CrystalDecisions.ReportAppServer.Controllers.dll</HintPath>
+    </Reference>
+    <Reference Include="CrystalDecisions.ReportAppServer.CommonObjectModel">
+      <HintPath>$(CrystalReportsDir)\CrystalDecisions.ReportAppServer.CommonObjectModel.dll</HintPath>
+    </Reference>
+    <Reference Include="CrystalDecisions.ReportAppServer.ReportDefModel">
+      <HintPath>$(CrystalReportsDir)\CrystalDecisions.ReportAppServer.ReportDefModel.dll</HintPath>
+    </Reference>
+    <Reference Include="CrystalDecisions.ReportAppServer.DataDefModel">
+      <HintPath>$(CrystalReportsDir)\CrystalDecisions.ReportAppServer.DataDefModel.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
