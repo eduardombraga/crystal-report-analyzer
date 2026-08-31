@@ -35,6 +35,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="CrystalDecisions.CrystalReports.Engine">
       <HintPath>$(CrystalReportsDir)\CrystalDecisions.CrystalReports.Engine.dll</HintPath>
     </Reference>
