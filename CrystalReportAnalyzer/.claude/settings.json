@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "additionalDirectories": [
+      "c:\\Projetos\\pessoal\\CrystalReportAnalyzer\\docs\\superpowers\\plans"
+    ],
+    "allow": [
+      "Read(//c/Users/eduardo/.claude/plugins/cache/superpowers-dev/superpowers/5.0.7/skills/subagent-driven-development/**)"
+    ]
+  }
+}

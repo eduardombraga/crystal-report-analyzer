@@ -31,6 +31,7 @@ public static class SectionExtractor
                 ResetPageNumberAfter       = TryGetBool(section, s => s.SectionFormat.EnableResetPageNumberAfter, defaultValue: false),
                 KeepTogether               = TryGetBool(section, s => s.SectionFormat.EnableKeepTogether, defaultValue: false),
                 UnderlayFollowingSections  = TryGetBool(section, s => s.SectionFormat.EnableUnderlaySection, defaultValue: false),
+                Objects                    = ExtractObjects(section),
             });
         }
 
@@ -44,6 +45,65 @@ public static class SectionExtractor
         }
 
         return sections;
+    }
+
+    /// <summary>
+    /// Reads every drawable object of a section, sorted into reading order (top, then left).
+    /// Engine-only — must stay inside pass 1, before RAS is touched.
+    /// </summary>
+    private static List<ReportObjectModel> ExtractObjects(Section section)
+    {
+        var objects = new List<ReportObjectModel>();
+
+        foreach (ReportObject reportObject in section.ReportObjects)
+        {
+            var model = new ReportObjectModel
+            {
+                Name     = reportObject.Name,
+                Kind     = reportObject.Kind.ToString(),
+                Top      = reportObject.Top,
+                Left     = reportObject.Left,
+                Width    = reportObject.Width,
+                Height   = reportObject.Height,
+                Suppress = TryGet(() => reportObject.ObjectFormat.EnableSuppress, defaultValue: false),
+            };
+
+            // Kind-specific extras. Each report object type exposes a different subset of
+            // properties, and a malformed/unsupported object can throw on access, so every
+            // read is individually guarded.
+            switch (reportObject)
+            {
+                case TextObject textObject:
+                    model.Text    = TryGet(() => textObject.Text, defaultValue: string.Empty);
+                    model.CanGrow = TryGet(() => textObject.ObjectFormat.EnableCanGrow, defaultValue: false);
+                    break;
+
+                case FieldObject fieldObject:
+                    // FormulaName is Crystal's own notation: "{Table.Column}" or "{@Formula}",
+                    // which is exactly what links an object back to the exported formulas.
+                    model.DataSource = TryGet(() => fieldObject.DataSource?.FormulaName ?? string.Empty,
+                                              defaultValue: string.Empty);
+                    model.CanGrow    = TryGet(() => fieldObject.ObjectFormat.EnableCanGrow, defaultValue: false);
+                    break;
+
+                case SubreportObject subreportObject:
+                    model.SubreportName = TryGet(() => subreportObject.SubreportName, defaultValue: string.Empty);
+                    break;
+            }
+
+            objects.Add(model);
+        }
+
+        return objects
+            .OrderBy(o => o.Top)
+            .ThenBy(o => o.Left)
+            .ToList();
+    }
+
+    private static T TryGet<T>(Func<T> getter, T defaultValue)
+    {
+        try   { return getter(); }
+        catch { return defaultValue; }
     }
 
     private static bool TryGetBool(Section section, Func<Section, bool> getter, bool defaultValue)

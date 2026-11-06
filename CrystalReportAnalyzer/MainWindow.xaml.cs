@@ -149,14 +149,40 @@ namespace CrystalReportAnalyzer
             foreach (var sec in report.Sections)
             {
                 string hidden = sec.IsVisible ? "" : "  [oculta]";
-                parent.Items.Add(new TreeViewItem
+                var sectionNode = new TreeViewItem
                 {
                     Header = $"[{sec.Kind}] {sec.Name}  {sec.ObjectCount} obj{hidden}",
                     IsExpanded = false,
                     Tag = sec,
-                });
+                };
+                foreach (var obj in sec.Objects)
+                    sectionNode.Items.Add(Node($"  {DescribeObject(obj)}", expanded: false));
+                parent.Items.Add(sectionNode);
             }
             return parent;
+        }
+
+        /// <summary>
+        /// One-line summary of a section object for the tree: what it is, what it shows and where
+        /// it sits. Positions are shown in twips, as extracted.
+        /// </summary>
+        private static string DescribeObject(ReportObjectModel obj)
+        {
+            // Whichever of text/datasource/subreport this kind of object carries.
+            string content =
+                !string.IsNullOrWhiteSpace(obj.Text)          ? $"\"{Shorten(obj.Text)}\"" :
+                !string.IsNullOrWhiteSpace(obj.DataSource)    ? obj.DataSource :
+                !string.IsNullOrWhiteSpace(obj.SubreportName) ? obj.SubreportName :
+                obj.Name;
+
+            string flags = (obj.Suppress ? " [suprimido]" : "") + (obj.CanGrow ? " [cresce]" : "");
+            return $"[{obj.Kind}] {content}  @ {obj.Top},{obj.Left}  {obj.Width}x{obj.Height}{flags}";
+        }
+
+        private static string Shorten(string text)
+        {
+            string flat = text.Replace('\r', ' ').Replace('\n', ' ').Trim();
+            return flat.Length <= 60 ? flat : flat.Substring(0, 57) + "...";
         }
 
         private static TreeViewItem BuildFormulaNodes(ReportModel report)

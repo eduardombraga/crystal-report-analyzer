@@ -13,4 +13,9 @@ public class SectionModel
     public bool KeepTogether { get; set; }
     public bool UnderlayFollowingSections { get; set; }
     public string SuppressFormulaText { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Objects placed in this section, in reading order (sorted by Top, then Left).
+    /// </summary>
+    public List<ReportObjectModel> Objects { get; set; } = new();
 }
